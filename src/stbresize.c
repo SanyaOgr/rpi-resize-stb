@@ -3,6 +3,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <math.h>
 #include <unistd.h>
 #include <stb/stb_image.h>
@@ -298,8 +299,23 @@ int main(int argc, char **argv)
         free(ris_data);
     }
 
-    printf("Save png: %s\n", dst_name);
-    if (!(stbi_write_png(dst_name, resize_width, resize_height, channels, resize_data, resize_width * channels)))
+    bool retval = false;
+    if(strcmp(&dst_name[strlen(dst_name) - strlen(".jpg")], ".jpg") == 0)
+    {
+        printf("Save jpg: %s\n", dst_name);
+        retval = stbi_write_jpg(dst_name, resize_width, resize_height, channels, resize_data, 100);
+    }
+    else if(strcmp(&dst_name[strlen(dst_name) - strlen(".png")], ".png") == 0)
+    {
+        printf("Save png: %s\n", dst_name);
+        retval = stbi_write_png(dst_name, resize_width, resize_height, channels, resize_data, resize_width * channels);
+    }
+    else
+    {
+        printf("Format is not supported! Try .jpg or .png\n");
+    }
+
+    if (!retval)
     {
         fprintf(stderr, "ERROR: not write image: %s\n", dst_name);
         return 1;
