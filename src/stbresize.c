@@ -16,12 +16,12 @@
 #include "hris.h"
 #include "gauss.h"
 
-#define RESIZE_VERSION "1.8"
+#define RESIZE_VERSION "1.8.1"
 
 void resize_usage(char* prog, int resize_height, int resize_width, float ratio, int method, float pris, int fris)
 {
-    printf("StbResize version %s.\n", RESIZE_VERSION);
-    printf("usage: %s [options] image_in out.png\n", prog);
+    printf("stb-resize version 1.8.1 %s.\n", RESIZE_VERSION);
+    printf("usage: %s [options] image_in out.<png,jpg>\n", prog);
     printf("options:\n");
     printf("  -H NUM    resize height (default %d)\n", resize_height);
     printf("  -W NUM    resize width (default %d)\n", resize_width);
