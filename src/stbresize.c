@@ -9,26 +9,20 @@
 #include <stb/stb_image.h>
 #include <stb/stb_image_write.h>
 #include "bicubic.h"
-#include "biakima.h"
-#include "biline.h"
-#include "gsample.h"
-#include "ris.h"
-#include "hris.h"
 #include "gauss.h"
 
 #define RESIZE_VERSION "1.8.1"
 
-void resize_usage(char* prog, int resize_height, int resize_width, float ratio, int method, float pris, int fris)
+void resize_usage(char* prog, int resize_height, int resize_width, float ratio, int quality)
 {
-    printf("stb-resize version 1.8.1 %s.\n", RESIZE_VERSION);
+    printf("stb-resize version %s.\n", RESIZE_VERSION);
     printf("usage: %s [options] image_in out.<png,jpg>\n", prog);
+    printf("method: bicubic (with Gauss prefilter if ratio < 1.0)\n");
     printf("options:\n");
-    printf("  -H NUM    resize height (default %d)\n", resize_height);
-    printf("  -W NUM    resize width (default %d)\n", resize_width);
-    printf("  -i        use RIS prescale (default %d)\n", fris);
-    printf("  -m NUM    method: 0 - bicubic, 1 - biakima, -1 - biline, -2 - gsample (default %d)\n", method);
-    printf("  -p N.M    part prefilter RIS (default %f)\n", pris);
-    printf("  -r N.M    sample ratio (default %f)\n", ratio);
+    printf("  -H px     resize height (default %d)\n", resize_height);
+    printf("  -W px     resize width (default %d)\n", resize_width);
+    printf("  -r X.X    sample ratio (default %f)\n", ratio);
+    printf("  -q %%      jpg quality (default %d)\n", quality);
     printf("  -h        show this help message and exit\n");
 }
 
@@ -36,18 +30,18 @@ int main(int argc, char **argv)
 {
     int height, width, channels, y, x, d;
     int resize_height = 0, resize_width = 0;
-    int ris_height, ris_width;
     float ratio = 1.0f;
-    int method = 0, gaussrx = 0, gaussry = 0;
-    float pris = 0.0f, vgauss, vris = 0.0f;
-    int fris = 0;
+    int quality = 100;
+    int gaussrx = 0, gaussry = 0;
+    float vgauss;
+
     int fhelp = 0;
     int opt;
     size_t szorig, szdest, ki, kd;
-    unsigned char *data = NULL, *resize_data = NULL, *ris_data = NULL;
+    unsigned char *data = NULL, *resize_data = NULL;
     stbi_uc *img = NULL;
 
-    while ((opt = getopt(argc, argv, ":H:W:im:p:r:h")) != -1)
+    while ((opt = getopt(argc, argv, ":H:W:r:q:h")) != -1)
     {
         switch(opt)
         {
@@ -57,21 +51,21 @@ int main(int argc, char **argv)
         case 'W':
             resize_width = atoi(optarg);
             break;
-        case 'i':
-            fris = !fris;
-            break;
-        case 'm':
-            method = atoi(optarg);
-            break;
-        case 'p':
-            pris = atof(optarg);
-            break;
         case 'r':
             ratio = atof(optarg);
             if (ratio < 0.0f)
             {
                 fprintf(stderr, "Bad argument\n");
                 fprintf(stderr, "ratio = %f\n", ratio);
+                return 1;
+            }
+            break;
+        case 'q':
+            quality = atoi(optarg);
+            if (quality <= 0 || 100 < quality)
+            {
+                fprintf(stderr, "Bad argument\n");
+                fprintf(stderr, "quality = %d\n", quality);
                 return 1;
             }
             break;
@@ -90,7 +84,7 @@ int main(int argc, char **argv)
     }
     if(optind + 2 > argc || fhelp)
     {
-        resize_usage(argv[0], resize_height, resize_width, ratio, method, pris, fris);
+        resize_usage(argv[0], resize_height, resize_width, ratio, quality);
         return 0;
     }
     const char *src_name = argv[optind];
@@ -103,12 +97,14 @@ int main(int argc, char **argv)
         fprintf(stderr, "ERROR: not read image: %s\n", src_name);
         return 1;
     }
+
     printf("image: %dx%d:%d\n", width, height, channels);
     if (!(data = (unsigned char*)malloc(height * width * channels * sizeof(unsigned char))))
     {
         fprintf(stderr, "ERROR: not use memmory\n");
         return 1;
     }
+
     ki = 0;
     kd = 0;
     for (y = 0; y < height; y++)
@@ -151,94 +147,13 @@ int main(int argc, char **argv)
     }
     szdest = (size_t)resize_height * resize_width;
 
-    if (fris)
+    if ((resize_height < height) || (resize_width < width))
     {
-        ki = szdest / szorig;
-        kd = szorig / szdest;
-        if (kd > 3)
-        {
-			kd = sqrt(kd);
-            ris_height = (height + kd - 1) / kd;
-            ris_width = (width + kd - 1) / kd;
-            if (!(resize_data = (unsigned char*)malloc(ris_height * ris_width * channels * sizeof(unsigned char))))
-            {
-                fprintf(stderr, "ERROR: not use memmory\n");
-                return 2;
-            }
-            printf("method: mean\n");
-            printf("down: %dx%d:%d\n", ris_width, ris_height, channels);
-            ResizeImageMean (data, height, width, channels, kd, resize_data);
-            free(data);
-            height = ris_height;
-            width = ris_width;
-            if (!(data = (unsigned char*)malloc(height * width * channels * sizeof(unsigned char))))
-            {
-                fprintf(stderr, "ERROR: not use memmory\n");
-                return 1;
-            }
-            kd = 0;
-            for (y = 0; y < height; y++)
-            {
-                for (x = 0; x < width; x++)
-                {
-                    for (d = 0; d < channels; d++)
-                    {
-                        data[kd] = resize_data[kd];
-                        kd++;
-                    }
-                }
-            }
-            free(resize_data);
-        }
-        else if (ki > 1)
-        {
-            while (ki > 1)
-            {
-                ris_height = height * 2;
-                ris_width = width * 2;
-                if (!(resize_data = (unsigned char*)malloc(ris_height * ris_width * channels * sizeof(unsigned char))))
-                {
-                    fprintf(stderr, "ERROR: not use memmory\n");
-                    return 2;
-                }
-                printf("method: hris\n");
-                printf("up: %dx%d:%d\n", ris_width, ris_height, channels);
-                ResizeImageHRIS (data, height, width, channels, 2, resize_data);
-                free(data);
-                height = ris_height;
-                width = ris_width;
-                if (!(data = (unsigned char*)malloc(height * width * channels * sizeof(unsigned char))))
-                {
-                    fprintf(stderr, "ERROR: not use memmory\n");
-                    return 1;
-                }
-                kd = 0;
-                for (y = 0; y < height; y++)
-                {
-                    for (x = 0; x < width; x++)
-                    {
-                        for (d = 0; d < channels; d++)
-                        {
-                            data[kd] = resize_data[kd];
-                            kd++;
-                        }
-                    }
-                }
-                free(resize_data);
-                ki /= 4;
-            }
-        }
-    }
-    else
-    {
-        if ((method > -2) && ((resize_height < height) || (resize_width < width)))
-        {
-            printf("prefilter: Gauss\n");
-            gaussry = (resize_height < height) ? (0.5f * (float)height / (float)resize_height) : 0.0f;
-            gaussrx = (resize_width < width) ? (0.5f * (float)width / (float)resize_width) : 0.0f;
-            vgauss = GaussBlurFilter(data, height, width, channels, gaussry, gaussrx);
-            printf("  gauss-value: %f\n", vgauss);
-        }
+        printf("prefilter: Gauss\n");
+        gaussry = (resize_height < height) ? (0.5f * (float)height / (float)resize_height) : 0.0f;
+        gaussrx = (resize_width < width) ? (0.5f * (float)width / (float)resize_width) : 0.0f;
+        vgauss = GaussBlurFilter(data, height, width, channels, gaussry, gaussrx);
+        printf("  gauss-value: %f\n", vgauss);
     }
 
     printf("resize: %dx%d:%d\n", resize_width, resize_height, channels);
@@ -248,62 +163,14 @@ int main(int argc, char **argv)
         return 2;
     }
 
-    if (method == -2)
-    {
-        printf("method: gsample\n");
-        ResizeImageGSample(data, height, width, channels, resize_height, resize_width, resize_data);
-    }
-    else if (method == -1)
-    {
-        printf("method: biline\n");
-        ResizeImageBiLine(data, height, width, channels, resize_height, resize_width, resize_data);
-    }
-    else if (method == 1)
-    {
-        printf("method: biakima\n");
-        ResizeImageBiAkima(data, height, width, channels, resize_height, resize_width, resize_data);
-    }
-    else
-    {
-        printf("method: bicubic\n");
-        ResizeImageBiCubic(data, height, width, channels, resize_height, resize_width, resize_data);
-    }
-
-    if (pris > 0.0f)
-    {
-        printf("prefilter: RIS\n");
-        if (!(ris_data = (unsigned char*)malloc(height * width * channels * sizeof(unsigned char))))
-        {
-            fprintf(stderr, "ERROR: not use memmory\n");
-            return 1;
-        }
-        ResizeImageGSample(resize_data, resize_height, resize_width, channels, height, width, ris_data);
-        vris = ImageReFilter(data, ris_data, height, width, channels, pris);
-        printf("  ris-value: %f\n", vris);
-        if (method == -2)
-        {
-            ResizeImageGSample(ris_data, height, width, channels, resize_height, resize_width, resize_data);
-        }
-        else if (method == -1)
-        {
-            ResizeImageBiLine(ris_data, height, width, channels, resize_height, resize_width, resize_data);
-        }
-        else if (method == 1)
-        {
-            ResizeImageBiAkima(ris_data, height, width, channels, resize_height, resize_width, resize_data);
-        }
-        else
-        {
-            ResizeImageBiCubic(ris_data, height, width, channels, resize_height, resize_width, resize_data);
-        }
-        free(ris_data);
-    }
+    printf("method: bicubic\n");
+    ResizeImageBiCubic(data, height, width, channels, resize_height, resize_width, resize_data);
 
     bool retval = false;
     if(strcmp(&dst_name[strlen(dst_name) - strlen(".jpg")], ".jpg") == 0)
     {
         printf("Save jpg: %s\n", dst_name);
-        retval = stbi_write_jpg(dst_name, resize_width, resize_height, channels, resize_data, 100);
+        retval = stbi_write_jpg(dst_name, resize_width, resize_height, channels, resize_data, quality);
     }
     else if(strcmp(&dst_name[strlen(dst_name) - strlen(".png")], ".png") == 0)
     {
