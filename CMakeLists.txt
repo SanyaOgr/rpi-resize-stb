@@ -1,7 +1,12 @@
 cmake_minimum_required(VERSION 3.0)
+
 project(rpi-resize-stb)
+
 add_compile_options(-Os -ffunction-sections -fdata-sections)
-add_link_options(-Wl,--gc-sections)
+add_link_options(-Wl,--gc-sections -no-pie)
+
 include_directories(src)
+
 add_executable(stb-resize src/stbresize.c src/dependencies.c)
+
 target_link_libraries(stb-resize m)
