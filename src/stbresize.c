@@ -16,7 +16,8 @@
 void resize_usage(char* prog, int resize_height, int resize_width, float ratio, int quality)
 {
     printf("stb-resize version %s.\n", RESIZE_VERSION);
-    printf("usage: %s [options] image_in out.<png,jpg>\n", prog);
+    printf("usage: %s [options] image_in.xxx out.xxx\n", prog);
+    printf("formats: png, jpg(jpeg)\n");
     printf("method: bicubic (with Gauss prefilter if ratio < 1.0)\n");
     printf("options:\n");
     printf("  -H px     resize height (default %d)\n", resize_height);
@@ -179,7 +180,7 @@ int main(int argc, char **argv)
     }
     else
     {
-        printf("Format is not supported! Try .jpg or .png\n");
+        printf("Saving to this format is not supported! Try .jpg or .png\n");
     }
 
     if (!retval)
