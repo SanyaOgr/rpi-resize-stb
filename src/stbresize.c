@@ -204,7 +204,7 @@ int main(int argc, char **argv)
     else
     {
         save_data = data;
-        printf("Saving with original size\n");
+        printf("saving with original size\n");
     }
 
     // Checking target format and saving image to file
