@@ -17,13 +17,13 @@ void resize_usage(char* prog, int resize_height, int resize_width, float ratio, 
 {
     printf("stb-resize version %s.\n", RESIZE_VERSION);
     printf("usage: %s [options] image_in.xxx image_out.xxx\n", prog);
-    printf("formats: png, jpg(jpeg)\n");
+    printf("extension: jpg(jpeg)\n");
     printf("method: bicubic (with Gauss prefilter for downsize)\n");
     printf("options:\n");
     printf("  -H px     resize height (default %d)\n", resize_height);
     printf("  -W px     resize width (default %d)\n", resize_width);
     printf("  -r X.X    sample ratio (default %f)\n", ratio);
-    printf("  -q %%      jpg quality (default %d)\n", quality);
+    printf("  -q %%      jpeg quality (default %d)\n", quality);
     printf("  -h        show this help message and exit\n");
 }
 
@@ -122,6 +122,15 @@ int main(int argc, char **argv)
     const char *src_name = argv[optind];
     const char *dst_name = argv[optind + 1];
 
+    // Check if image extension is supported
+    char* dst_ext = strrchr(dst_name, '.');
+    if(!(strcmp(dst_ext, ".jpg") == 0 || 
+        strcmp(dst_ext, ".jpeg") == 0))
+    {
+        printf("ERROR: saving to this format is not supported\n");
+        return 1;
+    }
+
     // Check if user doesn't resize image in fact
     if ((ratio == 1.f && resize_width == 0 && resize_height == 0) ||
         (resize_width == width && resize_height == height))
@@ -130,7 +139,7 @@ int main(int argc, char **argv)
     }
 
     // Load image from file
-    printf("Load: %s\n", src_name);
+    printf("load: %s\n", src_name);
     if (!(img = stbi_load(src_name, &width, &height, &channels, STBI_rgb_alpha)))
     {
         fprintf(stderr, "ERROR: not read image: %s\n", src_name);
@@ -199,21 +208,13 @@ int main(int argc, char **argv)
     }
 
     // Checking target format and saving image to file
-    bool retval = false;
-    if(strcmp(&dst_name[strlen(dst_name) - strlen(".jpg")], ".jpg") == 0)
+    bool retval = true;
+    if(strcmp(dst_ext, ".jpg") == 0 || 
+        strcmp(dst_ext, ".jpeg") == 0)
     {
-        printf("Quality: %d%%\n", quality);
-        printf("Save jpg: %s\n", dst_name);
+        printf("quality: %d%%\n", quality);
+        printf("save: %s\n", dst_name);
         retval = stbi_write_jpg(dst_name, resize_width, resize_height, channels, save_data, quality);
-    }
-    else if(strcmp(&dst_name[strlen(dst_name) - strlen(".png")], ".png") == 0)
-    {
-        printf("Save png: %s\n", dst_name);
-        retval = stbi_write_png(dst_name, resize_width, resize_height, channels, save_data, resize_width * channels);
-    }
-    else
-    {
-        printf("Saving to this format is not supported! Try .jpg or .png\n");
     }
 
     if (!retval)
