@@ -7,18 +7,17 @@
 #include <math.h>
 #include <unistd.h>
 #include <stb/stb_image.h>
+#include <stb/stb_image_resize.h>
 #include <stb/stb_image_write.h>
-#include "bicubic.h"
-#include "gauss.h"
 
-#define RESIZE_VERSION "1.8.1"
+#define RESIZE_VERSION "1.8.2"
 
 void resize_usage(char* prog, int resize_height, int resize_width, float ratio, int quality)
 {
     printf("stb-resize version %s.\n", RESIZE_VERSION);
     printf("usage: %s [options] image_in.xxx image_out.xxx\n", prog);
     printf("extension: jpg(jpeg)\n");
-    printf("method: bicubic (with Gauss prefilter for downsize)\n");
+    //printf("method: bicubic (with Gauss prefilter for downsize)\n");
     printf("options:\n");
     printf("  -H px     resize height (default %d)\n", resize_height);
     printf("  -W px     resize width (default %d)\n", resize_width);
@@ -27,29 +26,19 @@ void resize_usage(char* prog, int resize_height, int resize_width, float ratio, 
     printf("  -h        show this help message and exit\n");
 }
 
-void resize(unsigned char *src, int height, int width, int channels, int resize_height, int resize_width, unsigned char *res)
+int resize(stbi_uc *src, int height, int width, int channels, int resize_height, int resize_width, stbi_uc *dst)
 {
-    int gaussrx = 0, gaussry = 0;
-    float vgauss;
-
-    // Use Gauss prefilter if image downsizes only
-    if ((resize_height < height) || (resize_width < width))
-    {
-        printf("prefilter: Gauss\n");
-        gaussry = (resize_height < height) ? (0.5f * (float)height / (float)resize_height) : 0.0f;
-        gaussrx = (resize_width < width) ? (0.5f * (float)width / (float)resize_width) : 0.0f;
-        vgauss = GaussBlurFilter(src, height, width, channels, gaussry, gaussrx);
-        printf("  gauss-value: %f\n", vgauss);
-    }
-    else
-    {
-        printf("prefilter: none\n");
-    }
-
     printf("resize: %dx%d:%d\n", resize_width, resize_height, channels);
-
-    printf("method: bicubic\n");
-    ResizeImageBiCubic(src, height, width, channels, resize_height, resize_width, res);
+    
+    int ret = stbir_resize(src, width, height, 0, 
+                            dst, resize_width, resize_height, 0,
+                            STBIR_TYPE_UINT8,
+                            channels, STBIR_ALPHA_CHANNEL_NONE, 0,
+                            STBIR_EDGE_CLAMP, STBIR_EDGE_CLAMP,
+                            STBIR_FILTER_DEFAULT, STBIR_FILTER_DEFAULT,
+                            STBIR_COLORSPACE_SRGB, NULL);
+    
+    return ret;
 }
 
 int main(int argc, char **argv)
@@ -62,9 +51,8 @@ int main(int argc, char **argv)
 
     int fhelp = 0;
     int opt;
-    size_t ki, kd;
-    unsigned char *data = NULL, *resize_data = NULL, *save_data = NULL;
-    stbi_uc *img = NULL;
+
+    stbi_uc *img = NULL, *resize_img = NULL, *save_img = NULL;
 
     // Getting CLI options
     while ((opt = getopt(argc, argv, ":H:W:r:q:h")) != -1)
@@ -140,36 +128,13 @@ int main(int argc, char **argv)
 
     // Load image from file
     printf("load: %s\n", src_name);
-    if (!(img = stbi_load(src_name, &width, &height, &channels, STBI_rgb_alpha)))
+    if (!(img = stbi_load(src_name, &width, &height, &channels, 0)))
     {
         fprintf(stderr, "ERROR: not read image: %s\n", src_name);
         return 1;
     }
 
-    // Allocate memory for image data
     printf("image: %dx%d:%d\n", width, height, channels);
-    if (!(data = (unsigned char*)malloc(height * width * channels * sizeof(unsigned char))))
-    {
-        fprintf(stderr, "ERROR: not use memmory\n");
-        return 1;
-    }
-
-    // Get image data
-    ki = 0;
-    kd = 0;
-    for (y = 0; y < height; y++)
-    {
-        for (x = 0; x < width; x++)
-        {
-            for (d = 0; d < channels; d++)
-            {
-                data[kd + d] = (unsigned char)img[ki + d];
-            }
-            ki += STBI_rgb_alpha;
-            kd += channels;
-        }
-    }
-    stbi_image_free(img);
 
     // Check if width or height must be resized by ratio
     if (resize_height == 0)
@@ -191,19 +156,23 @@ int main(int argc, char **argv)
             return 1;
         }
 
-        if (!(resize_data = (unsigned char*)malloc(resize_height * resize_width * channels * sizeof(unsigned char))))
+        if (!(resize_img = (unsigned char*)malloc(resize_height * resize_width * channels * sizeof(unsigned char))))
         {
             fprintf(stderr, "ERROR: failed to allocate memory\n");
             return 2;
         }
 
-        resize(data, height, width, channels, resize_height, resize_width, resize_data);
+        if(!resize(img, height, width, channels, resize_height, resize_width, resize_img))
+        {
+            fprintf(stderr, "ERROR: failed to resize image\n");
+            return 2;
+        }
 
-        save_data = resize_data;
+        save_img = resize_img;
     }
     else
     {
-        save_data = data;
+        save_img = img;
         printf("saving with original size\n");
     }
 
@@ -214,7 +183,7 @@ int main(int argc, char **argv)
     {
         printf("quality: %d%%\n", quality);
         printf("save: %s\n", dst_name);
-        retval = stbi_write_jpg(dst_name, resize_width, resize_height, channels, save_data, quality);
+        retval = stbi_write_jpg(dst_name, resize_width, resize_height, channels, save_img, quality);
     }
 
     if (!retval)
@@ -226,9 +195,9 @@ int main(int argc, char **argv)
     // Free allocated memory
     if(resizing)
     {
-        free(resize_data);
+        stbi_image_free(resize_img);
     }
-    free(data);
+    stbi_image_free(img);
 
     return 0;
 }
