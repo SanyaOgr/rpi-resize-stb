@@ -1,30 +1,12 @@
 # rpi-resize-stb
 Raspberry PI utility for image resizing
-- Source: https://github.com/ImageProcessing-ElectronicPublications/stb-image-resize.git
-
-
-## Functionality
-
-The image is scaled using interpolation:
-- bicubic (4x4)
-
-Include prefilter:
-- Gauss
-
-Added features:
-- Saving into `.jpg` and `.jpeg` format
 
 
 ## Build
 
-### Load submodules
-
-Submodules:
-- [stb](https://github.com/nothings/stb.git) -> [src/stb](src/stb)
-
+### Clone repo
 ```shell
-$ git submodule init
-$ git submodule update
+$ git clone git@github.com:SanyaOgr/stb-resize-rpi.git --recursive
 ```
 
 ### Install dependencies
@@ -53,10 +35,10 @@ The first and second parameters specify the paths to the image and the result. T
 ./stbresize -r 4 -q 90 image_in.jpg image_out.jpg
 ```
 
+
 ## Structure
 
-- `bicubic.h` - bicubic image scaling
 - `dependencies.c` - API [stb](https://github.com/nothings/stb.git)
-- `gauss.h` - prefilter: Gauss
 - `stb/` - [stb](https://github.com/nothings/stb.git)
 - `stbresize.c` - CLI program.
+- `scripts/preview.sh` - Script for making photo previews on RPi which works on satellite.
