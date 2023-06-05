@@ -1,13 +1,15 @@
 #! /bin/bash
 # make 340x240 preview and 1024x768 photo with preffered file-sizes(in Kb)
-# parameter: [photo number] [preview-file-size] [photo-file-size]
+# parameters: [photo number] [preview-file-size] [photo-file-size]
 
 num=$1
-src_dir="."
+src_dir="$HOME/photo"
 src_name="$num.jpg"
 dst_dir="$HOME/thumbs"
 prev_name="$num-prev.jpg"
 photo_name="$num-main.jpg"
+prev_targz_name="$num-prev.tar.gz"
+photo_targz_name="$num-main.tar.gz"
 
 src_path="$src_dir/$src_name"
 prev_path="$dst_dir/$prev_name"
@@ -59,5 +61,9 @@ do
     # echo "-- Photo size: $photo_size b"
 done
 
-echo "-- Preview: $prev_name (340x240 $prev_qual % $(($prev_size/1024)) Kb)"
-echo "-- Photo: $photo_name (1024x768 $photo_qual % $(($photo_size/1024)) Kb)"
+cd $dst_dir
+tar -zcvf $prev_targz_name $prev_name > /dev/null
+tar -zcvf $photo_targz_name $photo_name > /dev/null
+
+echo "-- Preview archive: $prev_targz_name (340x240 $prev_qual % $(($prev_size/1024)) Kb)"
+echo "-- Photo archive: $photo_targz_name (1024x768 $photo_qual % $(($photo_size/1024)) Kb)"

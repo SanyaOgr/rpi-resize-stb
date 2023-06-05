@@ -1,10 +1,2 @@
-build/
-stbresize
-Makefile
-CMakeCache.txt
-.o
-.cmake
+build
 .vscode
-.cache
-.clangd
-a.out
