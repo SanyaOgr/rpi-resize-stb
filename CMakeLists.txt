@@ -7,6 +7,6 @@ add_link_options(-Wl,--gc-sections -no-pie)
 
 include_directories(src)
 
-add_executable(stb-resize src/stbresize.c src/dependencies.c)
+add_executable(stb-resize src/stbresize.c)
 
 target_link_libraries(stb-resize m)

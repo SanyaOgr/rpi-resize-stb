@@ -1,3 +1,11 @@
+#define STB_IMAGE_IMPLEMENTATION
+#define STBI_ONLY_JPEG
+#include <stb/stb_image.h>
+#define STB_IMAGE_RESIZE_IMPLEMENTATION
+#include <stb/stb_image_resize.h>
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+#include <stb/stb_image_write.h>
+
 #include <stddef.h>
 #include <stdint.h>
 #include <stdbool.h>
@@ -6,11 +14,8 @@
 #include <string.h>
 #include <math.h>
 #include <unistd.h>
-#include <stb/stb_image.h>
-#include <stb/stb_image_resize.h>
-#include <stb/stb_image_write.h>
 
-#define RESIZE_VERSION "1.8.2"
+#define RESIZE_VERSION "1.0"
 
 void resize_usage(char* prog, int resize_height, int resize_width, float ratio, int quality)
 {
