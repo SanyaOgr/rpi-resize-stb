@@ -10,8 +10,6 @@
 #include "stb_image_write.h"
 #pragma GCC diagnostic pop
 
-#include <stddef.h>
-#include <stdint.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -19,14 +17,10 @@
 #include <math.h>
 #include <unistd.h>
 
-#define RESIZE_VERSION "1.0"
-
 void resize_usage(char* prog, int resize_height, int resize_width, float ratio, int quality)
 {
-    printf("stb-resize version %s.\n", RESIZE_VERSION);
-    printf("usage: %s [options] image_in.xxx image_out.xxx\n", prog);
-    printf("extension: jpg(jpeg)\n");
-    //printf("method: bicubic (with Gauss prefilter for downsize)\n");
+    printf("usage: %s [options] image_in.jpg image_out.jpg\n", prog);
+    printf("image extension: jpg(jpeg)\n");
     printf("options:\n");
     printf("  -H px     resize height (default %d)\n", resize_height);
     printf("  -W px     resize width (default %d)\n", resize_width);
