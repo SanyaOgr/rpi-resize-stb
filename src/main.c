@@ -1,3 +1,6 @@
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wmissing-field-initializers" 
+#pragma GCC diagnostic ignored "-Wunused-parameter"
 #define STB_IMAGE_IMPLEMENTATION
 #define STBI_ONLY_JPEG
 #include "stb_image.h"
@@ -5,6 +8,7 @@
 #include "stb_image_resize.h"
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "stb_image_write.h"
+#pragma GCC diagnostic pop
 
 #include <stddef.h>
 #include <stdint.h>
@@ -48,7 +52,7 @@ int resize(stbi_uc *src, int height, int width, int channels, int resize_height,
 
 int main(int argc, char **argv)
 {
-    int height, width, channels, y, x, d;
+    int height, width, channels;
     int resize_height = 0, resize_width = 0;
     bool resizing = true;
     float ratio = 1.0f;
@@ -116,7 +120,7 @@ int main(int argc, char **argv)
     const char *dst_name = argv[optind + 1];
 
     // Check if image extension is supported
-    char* dst_ext = strrchr(dst_name, '.');
+    const char* dst_ext = strrchr(dst_name, '.');
     if(!(strcmp(dst_ext, ".jpg") == 0 || 
         strcmp(dst_ext, ".jpeg") == 0))
     {
