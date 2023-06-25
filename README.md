@@ -42,7 +42,7 @@ CMake install command copies binary and script to `~/bin` or `{projectDir}/rpi-i
 The first and second parameters specify the paths to the image and the result. The `-H`, `-W` and `-r` options set the resulting dimensions. If `-H` and `-W` is given, then `-r` is ignored. `-q` option sets quality of output image in percents
 
 ```shell
-./stb-resize -r 4 -q 90 image_in.jpg image_out.jpg
+stb-resize -r 4 -q 90 image_in.jpg image_out.jpg
 ```
 
 
