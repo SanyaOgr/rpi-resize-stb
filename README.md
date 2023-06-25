@@ -1,31 +1,41 @@
-# rpi-resize-stb
-Raspberry PI utility for image resizing
+# stb-resize
+Utility for resize images, based on stb_image lib. Developed for work on satellite's Raspberry Pi
 
 
-## Build
+## Setup
 
 ### Clone repo
 ```shell
-$ git clone git@github.com:SanyaOgr/stb-resize-rpi.git --recursive
+$ git clone git@github.com:SanyaOgr/stb-resize-rpi.git
 ```
 
 ### Install dependencies
 
 Build dependencies:
 ```shell
-$ sudo apt-get install build-essential cmake
+$ sudo apt install build-essential cmake
 ```
-Cross-compiling toolchain: https://github.com/SanyaOgr/rpi-crosscompile-template#setup
+Cross-compiling toolchain if you need: https://github.com/zdrvzbl/rpi-crosscompile-template#setup
 
-### Compilation
+### Configure
 
 ```shell
-$ mkdir build
-$ cd build
-$ cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=rpi-toolchain.cmake ..
-$ cmake --build .
+$ cmake --preset <linux-default | linux-arm> .
+
+```
+### Build
+
+```shell
+$ cmake --build <build/default | build/rpi>
 ```
 
+### Install
+
+```shell
+$ cmake --install <build/default | build/rpi>
+```
+
+CMake install command copies binary and script to `~/bin` or `{projectDir}/rpi-install/bin` in depend of chosen preset
 
 ## Usage
 
@@ -38,7 +48,6 @@ The first and second parameters specify the paths to the image and the result. T
 
 ## Structure
 
-- `dependencies.c` - API [stb](https://github.com/nothings/stb.git)
-- `stb/` - [stb](https://github.com/nothings/stb.git)
-- `stbresize.c` - CLI program.
-- `scripts/preview.sh` - Script for making photo previews on RPi which works on satellite.
+- `stb_{name}` - [stb_image headers](https://github.com/nothings/stb.git)
+- `main.c` - CLI program
+- `scripts/preview.sh` - Script for making photo previews on satellite's RPi
