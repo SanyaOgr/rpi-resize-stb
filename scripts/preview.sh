@@ -1,9 +1,9 @@
 #! /bin/bash
-# make 340x240 preview and 1024x768 photo with preffered file-sizes(in Kb)
-# parameters: [photo number] [preview-file-size] [photo-file-size]
+# make 340x240 preview and 1024x768 photo with preffered file sizes(in Kb)
+# parameters: [photo number] [preview file size] [photo file size]
 
 num=$1
-src_dir="$HOME/photo"
+src_dir="$HOME/photos"
 src_name="$num.jpg"
 dst_dir="$HOME/thumbs"
 prev_name="$num-prev.jpg"
