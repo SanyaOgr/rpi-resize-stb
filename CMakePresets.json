@@ -4,8 +4,8 @@
         {
             "name": "linux-default",
             "displayName": "linux-default (GCC 11.3.0 x86_64-linux-gnu)",
-            "description": "Ninja generator, Compilers: C = /usr/bin/gcc, CXX = /usr/bin/g++",
-            "generator": "Ninja",
+            "description": "Make generator, Compilers: C = /usr/bin/gcc, CXX = /usr/bin/g++",
+            "generator": "Unix Makefiles",
             "binaryDir": "${sourceDir}/build/default",
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "MinSizeRel",
@@ -17,7 +17,7 @@
         {
             "name": "linux-arm",
             "displayName": "linux-arm (rpi-toolchain.cmake)",
-            "description": "Ninja generator, RPi toolchain file",
+            "description": "Make generator, RPi toolchain file",
             "generator": "Unix Makefiles",
             "binaryDir": "${sourceDir}/build/rpi",
             "cacheVariables": {
