@@ -1,0 +1,30 @@
+{
+    "version": 2,
+    "configurePresets": [
+        {
+            "name": "linux-default",
+            "displayName": "linux-default (GCC 11.3.0 x86_64-linux-gnu)",
+            "description": "Ninja generator, Compilers: C = /usr/bin/gcc, CXX = /usr/bin/g++",
+            "generator": "Ninja",
+            "binaryDir": "${sourceDir}/build/default",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "MinSizeRel",
+                "CMAKE_C_COMPILER": "/usr/bin/gcc",
+                "CMAKE_CXX_COMPILER": "/usr/bin/g++",
+                "CMAKE_INSTALL_PREFIX": "~"
+            }
+        },
+        {
+            "name": "linux-arm",
+            "displayName": "linux-arm (rpi-toolchain.cmake)",
+            "description": "Ninja generator, RPi toolchain file",
+            "generator": "Unix Makefiles",
+            "binaryDir": "${sourceDir}/build/rpi",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "MinSizeRel",
+                "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/rpi-toolchain.cmake",
+                "CMAKE_INSTALL_PREFIX": "${sourceDir}/rpi-install"
+            }
+        }
+    ]
+}
