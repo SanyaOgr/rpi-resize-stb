@@ -12,4 +12,4 @@ target_link_libraries(stb-resize m)
 target_compile_options(stb-resize PRIVATE -Wall -Wextra -Werror -pedantic)
 
 install(TARGETS stb-resize RUNTIME DESTINATION bin)
-install(FILES ${CMAKE_SOURCE_DIR}/scripts/preview.sh DESTINATION bin)
+install(PROGRAMS ${CMAKE_SOURCE_DIR}/scripts/preview.sh DESTINATION bin)
